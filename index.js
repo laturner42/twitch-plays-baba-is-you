@@ -88,8 +88,15 @@ function onMessageHandler (target, context, msg, self) {
   if (commandTotal === 'p' || commandTotal === 'pause') {
     client.say(target, 'Pausing is disabled.');
   } else if (restartCommands.includes(commandTotal)) {
+    if (requestTimestamp && (new Date() - requestTimestamp >= 300000)) {
+      requestTimestamp = null;
+      restartsRequested.clear();
+    }
     restartsRequested.add(context.username); 
-    if (requestTimestamp && (new Date() - requestTimestamp < 300000)) {
+    if (!requestTimestamp) {
+      client.say(target, 'A restart has been requested! 3 requests are required to go through. The request lasts for five minutes.');
+      requestTimestamp = new Date();
+    } else {
       const numRequests = restartsRequested.size;
       if (numRequests >= 3 && acceptingCommands) {
         client.say(target, 'Restarting the level!');
@@ -102,9 +109,6 @@ function onMessageHandler (target, context, msg, self) {
       } else {
         client.say(target, `We have ${numRequests} request${numRequests > 1 ? 's' : ''} to restart.`);
       }
-    } else {
-      client.say(target, 'A restart has been requested! 3 requests are required to go through. The request lasts for five minutes.');
-      requestTimestamp = new Date();
     }
   } else if (commands[commandName]) {
     if (acceptingCommands && numTimes > 0) {
